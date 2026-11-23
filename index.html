@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#073b78">
+<title>ACTIVE TALK – Flashcards Unit 1 - 4</title>
+<style>
+:root{
+  --blue:#073b78;
+  --blue-light:#1763b1;
+  --red:#d62828;
+  --green:#16a34a;
+  --ink:#172033;
+  --muted:#64748b;
+  --line:#dbe3ee;
+  --soft:#f1f5f9;
+  --bg:#f4f7fb;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{
+  margin:0;
+  padding:0;
+  background:var(--bg);
+  color:var(--ink);
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  min-height:100dvh;
+  overflow-x:hidden;
+}
+.app{
+  width:100%;
+  max-width:680px;
+  margin:0 auto;
+  padding:14px 14px calc(24px + env(safe-area-inset-bottom));
+  display:flex;
+  flex-direction:column;
+  min-height:100dvh;
+}
+header{text-align:center;margin-bottom:12px}
+h1{font-size:22px;letter-spacing:1.2px;color:var(--blue);margin:2px 0 4px;font-weight:800}
+.sub{color:var(--muted);font-size:13px}
+
+/* Thanh công cụ gọn cho mobile */
+.toolbar{
+  display:grid;
+  grid-template-columns:1fr auto auto;
+  gap:8px;
+  margin-bottom:12px;
+}
+.toolbar select,.toolbar button{
+  border:1px solid var(--line);
+  border-radius:12px;
+  padding:10px 12px;
+  background:#fff;
+  color:var(--blue);
+  font-weight:700;
+  font-size:13.5px;
+  cursor:pointer;
+  min-height:42px;
+}
+.toolbar select{width:100%;text-overflow:ellipsis}
+.toolbar button:active{background:var(--soft);transform:scale(.97)}
+
+/* Thanh tiến độ */
+.progress{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  color:var(--muted);
+  font-size:12.5px;
+  font-weight:600;
+  margin-bottom:6px;
+  padding:0 2px;
+}
+.counter{font-variant-numeric:tabular-nums;color:var(--blue);font-weight:800}
+.track{height:6px;background:#e2e8f0;border-radius:99px;overflow:hidden;margin-bottom:14px}
+.bar{height:100%;width:0;background:var(--blue-light);transition:width .25s ease}
+
+/* Thẻ Flashcard tối ưu chạm & vuốt */
+.card-wrap{perspective:1200px;width:100%;touch-action:pan-y}
+.card{
+  min-height:240px;
+  position:relative;
+  transform-style:preserve-3d;
+  transition:transform .5s cubic-bezier(.22,1,.36,1);
+  cursor:pointer;
+  outline:none;
+}
+.card.flipped{transform:rotateY(180deg)}
+.face{
+  position:absolute;
+  inset:0;
+  backface-visibility:hidden;
+  -webkit-backface-visibility:hidden;
+  border:1px solid var(--line);
+  border-radius:20px;
+  background:#fff;
+  box-shadow:0 8px 24px rgba(15,35,65,.07);
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  align-items:center;
+  text-align:center;
+  padding:38px 20px 32px;
+}
+.face.back{transform:rotateY(180deg)}
+.tag{
+  position:absolute;
+  top:14px;
+  left:16px;
+  font-size:11px;
+  letter-spacing:.5px;
+  color:var(--muted);
+  font-weight:700;
+  text-transform:uppercase;
+}
+.hint{
+  position:absolute;
+  top:14px;
+  right:16px;
+  color:#94a3b8;
+  font-size:11px;
+  font-weight:600;
+}
+.vietnamese,.english{
+  font-size:clamp(20px,5.2vw,26px);
+  line-height:1.45;
+  font-weight:700;
+  color:var(--blue);
+  overflow-wrap:anywhere;
+}
+.ipa{
+  font-size:clamp(16px,4.4vw,21px);
+  line-height:1.45;
+  color:var(--red);
+  margin-top:12px;
+  overflow-wrap:anywhere;
+}
+.flip-note{
+  position:absolute;
+  bottom:12px;
+  color:#94a3b8;
+  font-size:11.5px;
+}
+
+/* Khung gõ kiểm tra đáp án Mobile-Friendly */
+.practice-box{
+  margin-top:14px;
+  background:#fff;
+  border:1px solid var(--line);
+  border-radius:18px;
+  padding:12px;
+  box-shadow:0 4px 16px rgba(15,35,65,.04);
+}
+.input-group{
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+}
+.input-group textarea{
+  width:100%;
+  min-height:54px;
+  max-height:120px;
+  padding:12px 14px;
+  font-size:16px; /* Chuẩn 16px chống auto-zoom trên iPhone */
+  line-height:1.4;
+  font-family:inherit;
+  border:2px solid var(--line);
+  border-radius:12px;
+  outline:none;
+  color:var(--ink);
+  background:#f8fafc;
+  resize:none;
+  transition:border-color .2s, background .2s;
+}
+.input-group textarea:focus{
+  border-color:var(--blue-light);
+  background:#fff;
+}
+.input-group textarea.is-correct{
+  border-color:var(--green);
+  background:#f0fdf4;
+}
+.input-group textarea.is-wrong{
+  border-color:var(--red);
+  background:#fef2f2;
+}
+.check-btn{
+  width:100%;
+  min-height:46px;
+  border:0;
+  border-radius:12px;
+  background:var(--blue-light);
+  color:#fff;
+  font-size:15px;
+  font-weight:700;
+  cursor:pointer;
+}
+.check-btn:active{background:var(--blue);transform:scale(.99)}
+
+.feedback{
+  margin-top:8px;
+  font-size:14px;
+  font-weight:600;
+  line-height:1.45;
+  display:none;
+  padding:8px 10px;
+  border-radius:10px;
+}
+.feedback.ok{display:block;color:var(--green);background:#f0fdf4}
+.feedback.err{display:block;color:var(--red);background:#fef2f2}
+
+/* Thanh điều hướng ngón cái phía dưới */
+.nav{
+  display:grid;
+  grid-template-columns:1fr 1.3fr 1fr;
+  gap:10px;
+  margin-top:14px;
+}
+.nav button{
+  min-height:48px;
+  border:1px solid var(--line);
+  border-radius:14px;
+  background:#fff;
+  color:var(--blue);
+  font-weight:700;
+  font-size:15px;
+  cursor:pointer;
+}
+.nav button:active{background:var(--soft);transform:scale(.97)}
+.nav .primary{
+  background:var(--blue);
+  color:#fff;
+  border-color:var(--blue);
+}
+.nav .primary:active{background:#0b4d96}
+
+.gesture-tip{
+  text-align:center;
+  color:#94a3b8;
+  font-size:12px;
+  margin-top:12px;
+}
+
+/* Tối ưu riêng cho màn hình lớn (PC/Tablet) */
+@media(min-width:600px){
+  .app{padding:28px 20px}
+  h1{font-size:30px}
+  .card{min-height:290px}
+  .input-group{flex-direction:row;align-items:stretch}
+  .input-group textarea{min-height:48px}
+  .check-btn{width:auto;min-width:120px}
+}
+</style>
+</head>
+<body>
+<main class="app">
+  <header>
+    <h1>ACTIVE TALK</h1>
+    <div class="sub">Flashcards luyện nói & gõ câu · Unit 1 – 4 (107 thẻ)</div>
+  </header>
+
+  <div class="toolbar">
+    <select id="unitFilter" aria-label="Chọn bài học">
+      <option value="all">Tất cả (Unit 1 – 4)</option>
+      <option value="Unit 1">Unit 1 · 26 thẻ</option>
+      <option value="Unit 2">Unit 2 · 16 thẻ</option>
+      <option value="UNIT 3: FROM MORNING TO NOON">Unit 3 · 32 thẻ</option>
+      <option value="UNIT 4: FROM NOON TO NIGHT">Unit 4 · 33 thẻ</option>
+    </select>
+    <button id="shuffle" title="Trộn ngẫu nhiên">Trộn</button>
+    <button id="reset" title="Quay lại từ đầu">Đặt lại</button>
+  </div>
+
+  <div class="progress">
+    <span id="unitLabel">Unit 1</span>
+    <span class="counter" id="counter">1 / 107</span>
+  </div>
+  <div class="track"><div class="bar" id="bar"></div></div>
+
+  <div class="card-wrap" id="cardWrap">
+    <div class="card" id="card" tabindex="0" role="button" aria-label="Lật flashcard">
+      <section class="face front">
+        <span class="tag">TIẾNG VIỆT</span>
+        <span class="hint">MẶT TRƯỚC</span>
+        <div class="vietnamese" id="vi"></div>
+        <div class="flip-note">Chạm thẻ để lật · Vuốt trái/phải để chuyển</div>
+      </section>
+      <section class="face back">
+        <span class="tag">ENGLISH + IPA</span>
+        <span class="hint">MẶT SAU</span>
+        <div class="english" id="en"></div>
+        <div class="ipa" id="ipa"></div>
+        <div class="flip-note">Chạm thẻ để quay lại mặt trước</div>
+      </section>
+    </div>
+  </div>
+
+  <div class="practice-box">
+    <div class="input-group">
+      <textarea id="answerInput" rows="1" placeholder="Gõ câu tiếng Anh tại đây..." autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"></textarea>
+      <button class="check-btn" id="checkBtn">Kiểm tra</button>
+    </div>
+    <div class="feedback" id="feedback"></div>
+  </div>
+
+  <div class="nav">
+    <button id="prev">← Trước</button>
+    <button id="flip" class="primary">Lật thẻ</button>
+    <button id="next">Tiếp →</button>
+  </div>
+
+  <div class="gesture-tip">Mẹo: Vuốt ngang trên thẻ để chuyển câu nhanh</div>
+</main>
+
+<script>
+const allCards = [
+  // UNIT 1 (26 thẻ)
+  {"unit": "Unit 1", "vi": "Tôi rất vui khi gặp bạn.", "en": "It's good to see you.", "ipa": "/ɪts ɡʊd tə ˈsiː ju/"},
+  {"unit": "Unit 1", "vi": "Thật tuyệt khi gặp bạn.", "en": "It's great to see you.", "ipa": "/ɪts ɡreɪt tə ˈsiː ju/"},
+  {"unit": "Unit 1", "vi": "Thật vui khi được làm quen với bạn.", "en": "It's nice to get to know you.", "ipa": "/ɪts naɪs tə ɡet tə ˈnoʊ ju/"},
+  {"unit": "Unit 1", "vi": "Cho phép tôi được giới thiệu bản thân. Tên tôi là Minh.", "en": "Please allow me to introduce myself. My name is Minh.", "ipa": "/pliːz əˈlaʊ mi tə ˌɪntrəˈduːs maɪˈself. maɪ neɪm ɪz mɪn/"},
+  {"unit": "Unit 1", "vi": "Cho phép tôi giới thiệu người bạn của tôi, Lan.", "en": "Please allow me to introduce my friend, Lan.", "ipa": "/pliːz əˈlaʊ mi tə ˌɪntrəˈduːs maɪ frend, læn/"},
+  {"unit": "Unit 1", "vi": "Họ tên đầy đủ của tôi là Nguyễn Văn An. Bạn có thể gọi tôi là An.", "en": "My full name is Nguyen Van An. You can call me An for short.", "ipa": "/maɪ fʊl neɪm ɪz ŋwiːən væn ɑːn. ju kən kɔːl mi ɑːn fər ʃɔːrt/"},
+  {"unit": "Unit 1", "vi": "Tôi đến từ Việt Nam.", "en": "I'm from Vietnam.", "ipa": "/aɪm frəm ˌviːətˈnɑːm/"},
+  {"unit": "Unit 1", "vi": "Tôi đến từ tỉnh Đồng Nai.", "en": "I'm from Dong Nai Province.", "ipa": "/aɪm frəm ˌdɔŋ ˈnaɪ ˈprɑːvɪns/"},
+  {"unit": "Unit 1", "vi": "Tôi là nhân viên văn phòng.", "en": "I'm an office worker.", "ipa": "/aɪm ən ˈɑːfɪs ˌwɝːkər/"},
+  {"unit": "Unit 1", "vi": "Tôi là sinh viên.", "en": "I'm a student.", "ipa": "/aɪm ə ˈstuːdənt/"},
+  {"unit": "Unit 1", "vi": "Tôi làm nội trợ.", "en": "I'm a homemaker.", "ipa": "/aɪm ə ˈhoʊmˌmeɪkər/"},
+  {"unit": "Unit 1", "vi": "Tôi làm việc cho một công ty xây dựng.", "en": "I work for a construction company.", "ipa": "/aɪ wɝːk fər ə kənˈstrʌkʃən ˌkʌmpəni/"},
+  {"unit": "Unit 1", "vi": "Tôi làm việc cho một công ty lớn của Việt Nam.", "en": "I work for a large Vietnamese company.", "ipa": "/aɪ wɝːk fər ə lɑːrdʒ ˌviːətnəˈmiːz ˌkʌmpəni/"},
+  {"unit": "Unit 1", "vi": "Tôi làm việc cho một công ty có tên là ABC.", "en": "I work for a company called ABC.", "ipa": "/aɪ wɝːk fər ə ˈkʌmpəni kɔːld ˌeɪ biː ˈsiː/"},
+  {"unit": "Unit 1", "vi": "Tôi làm việc trong ngành logistics.", "en": "I work in logistics.", "ipa": "/aɪ wɝːk ɪn ləˈdʒɪstɪks/"},
+  {"unit": "Unit 1", "vi": "Tôi làm việc trong ngành marketing.", "en": "I work in marketing.", "ipa": "/aɪ wɝːk ɪn ˈmɑːrkətɪŋ/"},
+  {"unit": "Unit 1", "vi": "Tôi làm việc trong bộ phận kinh doanh.", "en": "I work in the sales department.", "ipa": "/aɪ wɝːk ɪn ðə ˈseɪlz dɪˌpɑːrtmənt/"},
+  {"unit": "Unit 1", "vi": "Tôi hứng thú với thể thao.", "en": "I'm interested in sports.", "ipa": "/aɪm ˈɪntrəstɪd ɪn spɔːrts/"},
+  {"unit": "Unit 1", "vi": "Tôi rất thích đọc sách.", "en": "I'm really into reading.", "ipa": "/aɪm ˈriːəli ˈɪntu ˈriːdɪŋ/"},
+  {"unit": "Unit 1", "vi": "Tôi rất thích đi du lịch.", "en": "I'm really into traveling.", "ipa": "/aɪm ˈriːəli ˈɪntu ˈtrævəlɪŋ/"},
+  {"unit": "Unit 1", "vi": "Màu yêu thích của tôi là màu trắng.", "en": "My favorite color is white.", "ipa": "/maɪ ˈfeɪvərɪt ˈkʌlər ɪz waɪt/"},
+  {"unit": "Unit 1", "vi": "Thể loại nhạc yêu thích của tôi là nhạc pop.", "en": "My favorite kind of music is pop.", "ipa": "/maɪ ˈfeɪvərɪt kaɪnd əv ˈmjuːzɪk ɪz pɑːp/"},
+  {"unit": "Unit 1", "vi": "Một trong những phẩm chất tốt nhất của tôi là tôi rất kiên nhẫn.", "en": "One of my best qualities is that I'm very patient.", "ipa": "/wʌn əv maɪ best ˈkwɑːlətiz ɪz ðæt aɪm ˈveri ˈpeɪʃənt/"},
+  {"unit": "Unit 1", "vi": "Một trong những phẩm chất tốt nhất của tôi là tôi rất đáng tin cậy.", "en": "One of my best qualities is that I'm very reliable.", "ipa": "/wʌn əv maɪ best ˈkwɑːlətiz ɪz ðæt aɪm ˈveri rɪˈlaɪəbəl/"},
+  {"unit": "Unit 1", "vi": "Một điều tôi cần cải thiện là sự kiên nhẫn.", "en": "One thing I need to improve is my patience.", "ipa": "/wʌn θɪŋ aɪ niːd tə ɪmˈpruːv ɪz maɪ ˈpeɪʃəns/"},
+  {"unit": "Unit 1", "vi": "Một điều tôi cần cải thiện là kỹ năng quản lý thời gian.", "en": "One thing I need to improve is my time management.", "ipa": "/wʌn θɪŋ aɪ niːd tə ɪmˈpruːv ɪz maɪ taɪm ˈmænɪdʒmənt/"},
+
+  // UNIT 2 (16 thẻ)
+  {"unit": "Unit 2", "vi": "Tôi không thích chạy bộ.", "en": "I dislike running.", "ipa": "/aɪ dɪsˈlaɪk ˈrʌnɪŋ/"},
+  {"unit": "Unit 2", "vi": "Tôi ghét làm việc nhà.", "en": "I hate doing housework.", "ipa": "/aɪ heɪt ˈduːɪŋ ˈhaʊsˌwɝːk/"},
+  {"unit": "Unit 2", "vi": "Tôi không thích nấu ăn.", "en": "I dislike cooking.", "ipa": "/aɪ dɪsˈlaɪk ˈkʊkɪŋ/"},
+  {"unit": "Unit 2", "vi": "Ngày yêu thích trong tuần của tôi là Chủ nhật vì tôi có thể ngủ dậy muộn.", "en": "My favorite day of the week is Sunday because I can sleep in.", "ipa": "/maɪ ˈfeɪvərɪt deɪ əv ðə wiːk ɪz ˈsʌndeɪ bɪˈkɔːz aɪ kən sliːp ɪn/"},
+  {"unit": "Unit 2", "vi": "Ngày yêu thích trong tuần của tôi là thứ Bảy vì đó là cuối tuần.", "en": "My favorite day of the week is Saturday because it's the weekend.", "ipa": "/maɪ ˈfeɪvərɪt deɪ əv ðə wiːk ɪz ˈsætərdeɪ bɪˈkɔːz ɪts ðə ˈwiːkˌend/"},
+  {"unit": "Unit 2", "vi": "Ngày yêu thích trong tuần của tôi là thứ Sáu vì tôi có thể thư giãn sau giờ làm.", "en": "My favorite day of the week is Friday because I can relax after work.", "ipa": "/maɪ ˈfeɪvərɪt deɪ əv ðə wiːk ɪz ˈfraɪdeɪ bɪˈkɔːz aɪ kən rɪˈlæks ˈæftər wɝːk/"},
+  {"unit": "Unit 2", "vi": "Tôi sống trong một gia đình hạt nhân và gia đình tôi có bốn người.", "en": "I live in a nuclear family, and there are four people in my family.", "ipa": "/aɪ lɪv ɪn ə ˈnuːkliər ˈfæməli, ən ðer ɑːr fɔːr ˈpiːpəl ɪn maɪ ˈfæməli/"},
+  {"unit": "Unit 2", "vi": "Tôi đến từ một gia đình hạt nhân có bốn người.", "en": "I come from a nuclear family of four.", "ipa": "/aɪ kʌm frəm ə ˈnuːkliər ˈfæməli əv fɔːr/"},
+  {"unit": "Unit 2", "vi": "Tôi sống trong một gia đình nhiều thế hệ và gia đình tôi có bảy người.", "en": "I live in an extended family, and there are seven people in my family.", "ipa": "/aɪ lɪv ɪn ən ɪkˈstendɪd ˈfæməli, ən ðer ɑːr ˈsevən ˈpiːpəl ɪn maɪ ˈfæməli/"},
+  {"unit": "Unit 2", "vi": "Hiện tại tôi đang sống cùng gia đình ở Thành phố Hồ Chí Minh.", "en": "Now I'm living with my family in Ho Chi Minh City.", "ipa": "/naʊ aɪm ˈlɪvɪŋ wɪð maɪ ˈfæməli ɪn ˌhoʊ tʃiː ˈmɪn ˈsɪti/"},
+  {"unit": "Unit 2", "vi": "Hiện tại tôi sống cùng gia đình ở Thành phố Hồ Chí Minh.", "en": "I currently live with my family in Ho Chi Minh City.", "ipa": "/aɪ ˈkɝːəntli lɪv wɪð maɪ ˈfæməli ɪn ˌhoʊ tʃiː ˈmɪn ˈsɪti/"},
+  {"unit": "Unit 2", "vi": "Hiện tại tôi đang sống xa gia đình vì tôi học ở một thành phố khác.", "en": "I'm currently living away from my family because I'm studying in another city.", "ipa": "/aɪm ˈkɝːəntli ˈlɪvɪŋ əˈweɪ frəm maɪ ˈfæməli bɪˈkɔːz aɪm ˈstʌdiɪŋ ɪn əˈnʌðər ˈsɪti/"},
+  {"unit": "Unit 2", "vi": "Tôi vốn đến từ Hà Nội nhưng hiện tại tôi sống ở Thành phố Hồ Chí Minh.", "en": "I'm originally from Hanoi, but now I'm based in Ho Chi Minh City.", "ipa": "/aɪm əˈrɪdʒənəli frəm hæˈnɔɪ, bət naʊ aɪm beɪst ɪn ˌhoʊ tʃiː ˈmɪn ˈsɪti/"},
+  {"unit": "Unit 2", "vi": "Tôi vốn đến từ Đà Lạt nhưng hiện tại tôi sống ở Nha Trang.", "en": "I'm originally from Da Lat, but now I'm based in Nha Trang.", "ipa": "/aɪm əˈrɪdʒənəli frəm ˌdɑː ˈlɑːt, bət naʊ aɪm beɪst ɪn ˌnɑː ˈtrɑːŋ/"},
+  {"unit": "Unit 2", "vi": "Tôi đã sống ở London được ba năm.", "en": "I've been living in London for three years.", "ipa": "/aɪv bɪn ˈlɪvɪŋ ɪn ˈlʌndən fər θriː jɪrz/"},
+  {"unit": "Unit 2", "vi": "Tôi đã sống ở đây từ năm 2022.", "en": "I've been living here since 2022.", "ipa": "/aɪv bɪn ˈlɪvɪŋ hɪr sɪns ˌtwenti ˌtwenti ˈtuː/"},
+
+  // UNIT 3 (32 thẻ)
+  {"unit": "UNIT 3: FROM MORNING TO NOON", "en": "I wake up at six every morning.", "ipa": "/aɪ weɪk ʌp æt sɪks ˈevri ˈmɔːrnɪŋ/", "vi": "Tôi thức dậy lúc 6 giờ mỗi sáng."},
+  {"unit": "UNIT 3: FROM MORNING TO NOON", "en": "She starts work at eight.", "ipa": "/ʃi stɑːrts wɝːk æt eɪt/", "vi": "Cô ấy bắt đầu làm việc lúc 8 giờ."},
+  {"unit": "UNIT 3: FROM MORNING TO NOON", "en": "I usually make coffee in the morning.", "ipa": "/aɪ ˈjuːʒuəli meɪk ˈkɔːfi ɪn ðə ˈmɔːrnɪŋ/", "vi": "Tôi thường pha cà phê vào buổi sáng."},
+  {"unit": "UNIT 3: FROM MORNING TO NOON", "en": "I'm sometimes tired after work.", "ipa": "/aɪm ˈsʌmtaɪmz ˈtaɪərd ˈæftər wɝːk/", "vi": "Thỉnh thoảng tôi cảm thấy mệt sau giờ làm."},
+  {"unit": "UNIT 3: FROM MORNING TO NOON", "en": "I usually wake up at six in the morning.", "ipa": "/aɪ ˈjuːʒuəli weɪk ʌp æt sɪks ɪn ðə ˈmɔːrnɪŋ/", "vi": "Tôi thường thức dậy lúc 6 giờ sáng."},
+  {"unit": "UNIT 3: FROM MORNING TO NOON", "en": "I usually get out of bed right away.", "ipa": "/aɪ ˈjuːʒuəli ɡet aʊt əv bed raɪt əˈweɪ/", "vi": "Tôi thường ra khỏi giường ngay."},
+  {"unit": "UNIT 3: FROM MORNING TO NOON", "en": "On tired mornings, I hit the snooze button once.", "ipa": "/ɑːn ˈtaɪərd ˈmɔːrnɪŋz, aɪ hɪt ðə snuːz ˈbʌtən wʌns/", "vi": "Vào những buổi sáng mệt mỏi, tôi thường nhấn nút báo lại một lần."},
+  {"unit": "UNIT 3: FROM MORNING TO NOON", "en": "After I wake up, I drink a glass of water.", "ipa": "/ˈæftər aɪ weɪk ʌp, aɪ drɪŋk ə ɡlæs əv ˈwɔːtər/", "vi": "Sau khi thức dậy, tôi uống một cốc nước."},
+  {"unit": "UNIT 3: FROM MORNING TO NOON", "en": "After that, I brush my teeth and wash my face.", "ipa": "/ˈæftər ðæt, aɪ brʌʃ maɪ tiːθ ən wɑːʃ maɪ feɪs/", "vi": "Sau đó, tôi đánh răng và rửa mặt."},
+  {"unit": "UNIT 3: FROM MORNING TO NOON", "en": "Then I take a shower and get dressed.", "ipa": "/ðen aɪ teɪk ə ˈʃaʊər ən ɡet drest/", "vi": "Sau đó, tôi đi tắm và thay quần áo."},
+  {"unit": "UNIT 3: FROM MORNING TO NOON", "en": "It takes me about thirty minutes to get ready.", "ipa": "/ɪt teɪks mi əˈbaʊt ˈθɝːti ˈmɪnɪts tə ɡet ˈredi/", "vi": "Tôi mất khoảng 30 phút để chuẩn bị."},
+  {"unit": "UNIT 3: FROM MORNING TO NOON", "en": "It takes me ten minutes to take a shower.", "ipa": "/ɪt teɪks mi ten ˈmɪnɪts tə teɪk ə ˈʃaʊər/", "vi": "Tôi mất 10 phút để tắm."},
+  {"unit": "UNIT 3: FROM MORNING TO NOON", "en": "I usually have a quick breakfast before work.", "ipa": "/aɪ ˈjuːʒuəli hæv ə kwɪk ˈbrekfəst bɪˈfɔːr wɝːk/", "vi": "Tôi thường ăn sáng nhanh trước khi đi làm."},
+  {"unit": "UNIT 3: FROM MORNING TO NOON", "en": "I make coffee to help me wake up.", "ipa": "/aɪ meɪk ˈkɔːfi tə help mi weɪk ʌp/", "vi": "Tôi pha cà phê để giúp mình tỉnh táo."},
+  {"unit": "UNIT 3: FROM MORNING TO NOON", "en": "I usually have bread and eggs for breakfast.", "ipa": "/aɪ ˈjuːʒuəli hæv bred ən eɡz fər ˈbrekfəst/", "vi": "Tôi thường ăn bánh mì và trứng vào bữa sáng."},
+  {"unit": "UNIT 3: FROM MORNING TO NOON", "en": "I usually leave home at seven thirty.", "ipa": "/aɪ ˈjuːʒuəli liːv hoʊm æt ˈsevən ˈθɝːti/", "vi": "Tôi thường rời nhà lúc 7 giờ 30."},
+  {"unit": "UNIT 3: FROM MORNING TO NOON", "en": "I head to work around seven forty-five.", "ipa": "/aɪ hed tə wɝːk əˈraʊnd ˈsevən ˌfɔːrti ˈfaɪv/", "vi": "Tôi đi làm vào khoảng 7 giờ 45."},
+  {"unit": "UNIT 3: FROM MORNING TO NOON", "en": "I ride my motorbike to work.", "ipa": "/aɪ raɪd maɪ ˈmoʊtərˌbaɪk tə wɝːk/", "vi": "Tôi đi xe máy đến chỗ làm."},
+  {"unit": "UNIT 3: FROM MORNING TO NOON", "en": "I drive to work when the weather is bad.", "ipa": "/aɪ draɪv tə wɝːk wen ðə ˈweðər ɪz bæd/", "vi": "Tôi lái xe đi làm khi thời tiết xấu."},
+  {"unit": "UNIT 3: FROM MORNING TO NOON", "en": "I book a Grab when I don't want to drive.", "ipa": "/aɪ bʊk ə ɡræb wen aɪ doʊnt wɑːnt tə draɪv/", "vi": "Tôi đặt xe Grab khi tôi không muốn tự lái xe."},
+  {"unit": "UNIT 3: FROM MORNING TO NOON", "en": "On my way to work, I usually listen to music.", "ipa": "/ɑːn maɪ weɪ tə wɝːk, aɪ ˈjuːʒuəli ˈlɪsən tə ˈmjuːzɪk/", "vi": "Trên đường đi làm, tôi thường nghe nhạc."},
+  {"unit": "UNIT 3: FROM MORNING TO NOON", "en": "On my way to work, I often stop for coffee.", "ipa": "/ɑːn maɪ weɪ tə wɝːk, aɪ ˈɔːfən stɑːp fər ˈkɔːfi/", "vi": "Trên đường đi làm, tôi thường ghé mua cà phê."},
+  {"unit": "UNIT 3: FROM MORNING TO NOON", "en": "I sometimes get stuck in traffic during rush hour.", "ipa": "/aɪ ˈsʌmtaɪmz ɡet stʌk ɪn ˈtræfɪk ˈdʊrɪŋ rʌʃ ˈaʊər/", "vi": "Đôi khi tôi bị kẹt xe vào giờ cao điểm."},
+  {"unit": "UNIT 3: FROM MORNING TO NOON", "en": "I sometimes get stuck in traffic on my way home.", "ipa": "/aɪ ˈsʌmtaɪmz ɡet stʌk ɪn ˈtræfɪk ɑːn maɪ weɪ hoʊm/", "vi": "Đôi khi tôi bị kẹt xe trên đường về nhà."},
+  {"unit": "UNIT 3: FROM MORNING TO NOON", "en": "I usually start my workday by checking my emails.", "ipa": "/aɪ ˈjuːʒuəli stɑːrt maɪ ˈwɝːkˌdeɪ baɪ ˈtʃekɪŋ maɪ ˈiːˌmeɪlz/", "vi": "Tôi thường bắt đầu ngày làm việc bằng việc kiểm tra email."},
+  {"unit": "UNIT 3: FROM MORNING TO NOON", "en": "I usually start my workday by reviewing my schedule.", "ipa": "/aɪ ˈjuːʒuəli stɑːrt maɪ ˈwɝːkˌdeɪ baɪ rɪˈvjuːɪŋ maɪ ˈskedʒuːl/", "vi": "Tôi thường bắt đầu ngày làm việc bằng việc xem lại lịch trình của mình."},
+  {"unit": "UNIT 3: FROM MORNING TO NOON", "en": "I spend most of my morning answering emails.", "ipa": "/aɪ spend moʊst əv maɪ ˈmɔːrnɪŋ ˈænsərɪŋ ˈiːˌmeɪlz/", "vi": "Tôi dành phần lớn buổi sáng để trả lời email."},
+  {"unit": "UNIT 3: FROM MORNING TO NOON", "en": "I spend most of my morning working on important tasks.", "ipa": "/aɪ spend moʊst əv maɪ ˈmɔːrnɪŋ ˈwɝːkɪŋ ɑːn ɪmˈpɔːrtənt tæsks/", "vi": "Tôi dành phần lớn buổi sáng để xử lý những công việc quan trọng."},
+  {"unit": "UNIT 3: FROM MORNING TO NOON", "en": "I usually have a short meeting with my team in the morning.", "ipa": "/aɪ ˈjuːʒuəli hæv ə ʃɔːrt ˈmiːtɪŋ wɪð maɪ tiːm ɪn ðə ˈmɔːrnɪŋ/", "vi": "Tôi thường có một cuộc họp ngắn với đội nhóm vào buổi sáng."},
+  {"unit": "UNIT 3: FROM MORNING TO NOON", "en": "Sometimes I have back-to-back meetings before lunch.", "ipa": "/ˈsʌmtaɪmz aɪ hæv ˌbæk tə ˈbæk ˈmiːtɪŋz bɪˈfɔːr lʌntʃ/", "vi": "Đôi khi tôi có nhiều cuộc họp liên tiếp trước giờ ăn trưa."},
+  {"unit": "UNIT 3: FROM MORNING TO NOON", "en": "I usually take my lunch break at noon.", "ipa": "/aɪ ˈjuːʒuəli teɪk maɪ lʌntʃ breɪk æt nuːn/", "vi": "Tôi thường nghỉ trưa lúc 12 giờ."},
+  {"unit": "UNIT 3: FROM MORNING TO NOON", "en": "I usually have lunch with my coworkers.", "ipa": "/aɪ ˈjuːʒuəli hæv lʌntʃ wɪð maɪ ˈkoʊˌwɝːkərz/", "vi": "Tôi thường ăn trưa với đồng nghiệp."},
+
+  // UNIT 4 (33 thẻ)
+  {"unit": "UNIT 4: FROM NOON TO NIGHT", "en": "I usually have lunch with my coworkers.", "ipa": "/aɪ ˈjuːʒuəli hæv lʌntʃ wɪð maɪ ˈkoʊˌwɝːkərz/", "vi": "Tôi thường ăn trưa với đồng nghiệp."},
+  {"unit": "UNIT 4: FROM NOON TO NIGHT", "en": "I sometimes have lunch alone when everyone is busy.", "ipa": "/aɪ ˈsʌmtaɪmz hæv lʌntʃ əˈloʊn wen ˈevriˌwʌn ɪz ˈbɪzi/", "vi": "Đôi khi tôi ăn trưa một mình khi mọi người đều bận."},
+  {"unit": "UNIT 4: FROM NOON TO NIGHT", "en": "After lunch, I take a short walk.", "ipa": "/ˈæftər lʌntʃ, aɪ teɪk ə ʃɔːrt wɔːk/", "vi": "Sau bữa trưa, tôi đi bộ một lúc."},
+  {"unit": "UNIT 4: FROM NOON TO NIGHT", "en": "After lunch, I usually have a cup of coffee.", "ipa": "/ˈæftər lʌntʃ, aɪ ˈjuːʒuəli hæv ə kʌp əv ˈkɔːfi/", "vi": "Sau bữa trưa, tôi thường uống một tách cà phê."},
+  {"unit": "UNIT 4: FROM NOON TO NIGHT", "en": "After lunch, I sometimes take a short nap.", "ipa": "/ˈæftər lʌntʃ, aɪ ˈsʌmtaɪmz teɪk ə ʃɔːrt næp/", "vi": "Sau bữa trưa, đôi khi tôi ngủ một lúc."},
+  {"unit": "UNIT 4: FROM NOON TO NIGHT", "en": "I usually get back to work at one.", "ipa": "/aɪ ˈjuːʒuəli ɡet bæk tə wɝːk æt wʌn/", "vi": "Tôi thường quay lại làm việc lúc 1 giờ."},
+  {"unit": "UNIT 4: FROM NOON TO NIGHT", "en": "I get back to work after a one-hour lunch break.", "ipa": "/aɪ ɡet bæk tə wɝːk ˈæftər ə wʌn ˈaʊər lʌntʃ breɪk/", "vi": "Tôi quay lại làm việc sau một giờ nghỉ trưa."},
+  {"unit": "UNIT 4: FROM NOON TO NIGHT", "en": "In the afternoon, I usually attend meetings.", "ipa": "/ɪn ði ˌæftərˈnuːn, aɪ ˈjuːʒuəli əˈtend ˈmiːtɪŋz/", "vi": "Vào buổi chiều, tôi thường tham gia các cuộc họp."},
+  {"unit": "UNIT 4: FROM NOON TO NIGHT", "en": "In the afternoon, I usually work on ongoing projects.", "ipa": "/ɪn ði ˌæftərˈnuːn, aɪ ˈjuːʒuəli wɝːk ɑːn ˈɑːnˌɡoʊɪŋ ˈprɑːdʒekts/", "vi": "Vào buổi chiều, tôi thường làm các dự án đang thực hiện."},
+  {"unit": "UNIT 4: FROM NOON TO NIGHT", "en": "I have to finish this report before five.", "ipa": "/aɪ hæf tə ˈfɪnɪʃ ðɪs rɪˈpɔːrt bɪˈfɔːr faɪv/", "vi": "Tôi phải hoàn thành báo cáo này trước 5 giờ."},
+  {"unit": "UNIT 4: FROM NOON TO NIGHT", "en": "I need to reply to all my emails before I leave.", "ipa": "/aɪ niːd tə rɪˈplaɪ tə ɔːl maɪ ˈiːˌmeɪlz bɪˈfɔːr aɪ liːv/", "vi": "Tôi cần trả lời tất cả email trước khi rời đi."},
+  {"unit": "UNIT 4: FROM NOON TO NIGHT", "en": "Before I leave work, I check what still needs to be done.", "ipa": "/bɪˈfɔːr aɪ liːv wɝːk, aɪ tʃek wʌt stɪl niːdz tə bi dʌn/", "vi": "Trước khi rời chỗ làm, tôi kiểm tra những việc vẫn cần hoàn thành."},
+  {"unit": "UNIT 4: FROM NOON TO NIGHT", "en": "Before I leave, I make a to-do list for the next day.", "ipa": "/bɪˈfɔːr aɪ liːv, aɪ meɪk ə təˈduː lɪst fər ðə nekst deɪ/", "vi": "Trước khi rời đi, tôi lập danh sách việc cần làm cho ngày hôm sau."},
+  {"unit": "UNIT 4: FROM NOON TO NIGHT", "en": "I usually finish work at five thirty.", "ipa": "/aɪ ˈjuːʒuəli ˈfɪnɪʃ wɝːk æt faɪv ˈθɝːti/", "vi": "Tôi thường kết thúc công việc lúc 5 giờ 30."},
+  {"unit": "UNIT 4: FROM NOON TO NIGHT", "en": "I sometimes work late when I have a deadline.", "ipa": "/aɪ ˈsʌmtaɪmz wɝːk leɪt wen aɪ hæv ə ˈdedˌlaɪn/", "vi": "Đôi khi tôi làm việc muộn khi có thời hạn cần hoàn thành."},
+  {"unit": "UNIT 4: FROM NOON TO NIGHT", "en": "I stay at the office late when there's too much work.", "ipa": "/aɪ steɪ æt ði ˈɔːfɪs leɪt wen ðerz tuː mʌtʃ wɝːk/", "vi": "Tôi ở lại văn phòng muộn khi có quá nhiều công việc."},
+  {"unit": "UNIT 4: FROM NOON TO NIGHT", "en": "On my way home, I sometimes stop by the grocery store.", "ipa": "/ɑːn maɪ weɪ hoʊm, aɪ ˈsʌmtaɪmz stɑːp baɪ ðə ˈɡroʊsəri stɔːr/", "vi": "Trên đường về nhà, đôi khi tôi ghé cửa hàng thực phẩm."},
+  {"unit": "UNIT 4: FROM NOON TO NIGHT", "en": "On my way home, I pick up dinner for my family.", "ipa": "/ɑːn maɪ weɪ hoʊm, aɪ pɪk ʌp ˈdɪnər fər maɪ ˈfæməli/", "vi": "Trên đường về nhà, tôi mua bữa tối cho gia đình."},
+  {"unit": "UNIT 4: FROM NOON TO NIGHT", "en": "When I get home, I change into comfortable clothes.", "ipa": "/wen aɪ ɡet hoʊm, aɪ tʃeɪndʒ ˈɪntu ˈkʌmftərbəl kloʊðz/", "vi": "Khi về đến nhà, tôi thay quần áo thoải mái."},
+  {"unit": "UNIT 4: FROM NOON TO NIGHT", "en": "When I get home, I take a shower and relax for a while.", "ipa": "/wen aɪ ɡet hoʊm, aɪ teɪk ə ˈʃaʊər ən rɪˈlæks fər ə waɪl/", "vi": "Khi về đến nhà, tôi đi tắm và thư giãn một lúc."},
+  {"unit": "UNIT 4: FROM NOON TO NIGHT", "en": "I usually have dinner with my family.", "ipa": "/aɪ ˈjuːʒuəli hæv ˈdɪnər wɪð maɪ ˈfæməli/", "vi": "Tôi thường ăn tối cùng gia đình."},
+  {"unit": "UNIT 4: FROM NOON TO NIGHT", "en": "I usually have dinner with my coworkers.", "ipa": "/aɪ ˈjuːʒuəli hæv ˈdɪnər wɪð maɪ ˈkoʊˌwɝːkərz/", "vi": "Tôi thường ăn tối cùng đồng nghiệp."},
+  {"unit": "UNIT 4: FROM NOON TO NIGHT", "en": "After dinner, I clear the table and do the dishes.", "ipa": "/ˈæftər ˈdɪnər, aɪ klɪr ðə ˈteɪbəl ən duː ðə ˈdɪʃɪz/", "vi": "Sau bữa tối, tôi dọn bàn và rửa chén."},
+  {"unit": "UNIT 4: FROM NOON TO NIGHT", "en": "After dinner, I help my children with their homework.", "ipa": "/ˈæftər ˈdɪnər, aɪ help maɪ ˈtʃɪldrən wɪð ðer ˈhoʊmˌwɝːk/", "vi": "Sau bữa tối, tôi giúp các con làm bài tập."},
+  {"unit": "UNIT 4: FROM NOON TO NIGHT", "en": "I spend the evening reading or watching videos.", "ipa": "/aɪ spend ði ˈiːvnɪŋ ˈriːdɪŋ ɔːr ˈwɑːtʃɪŋ ˈvɪdioʊz/", "vi": "Tôi dành buổi tối để đọc sách hoặc xem video."},
+  {"unit": "UNIT 4: FROM NOON TO NIGHT", "en": "I spend the evening talking with my family.", "ipa": "/aɪ spend ði ˈiːvnɪŋ ˈtɔːkɪŋ wɪð maɪ ˈfæməli/", "vi": "Tôi dành buổi tối để trò chuyện với gia đình."},
+  {"unit": "UNIT 4: FROM NOON TO NIGHT", "en": "I try to work out three times a week.", "ipa": "/aɪ traɪ tə wɝːk aʊt θriː taɪmz ə wiːk/", "vi": "Tôi cố gắng tập thể dục ba lần một tuần."},
+  {"unit": "UNIT 4: FROM NOON TO NIGHT", "en": "I try to go for a walk every evening.", "ipa": "/aɪ traɪ tə ɡoʊ fər ə wɔːk ˈevri ˈiːvnɪŋ/", "vi": "Tôi cố gắng đi bộ mỗi tối."},
+  {"unit": "UNIT 4: FROM NOON TO NIGHT", "en": "Before I go to bed, I brush my teeth and wash my face.", "ipa": "/bɪˈfɔːr aɪ ɡoʊ tə bed, aɪ brʌʃ maɪ tiːθ ən wɑːʃ maɪ feɪs/", "vi": "Trước khi đi ngủ, tôi đánh răng và rửa mặt."},
+  {"unit": "UNIT 4: FROM NOON TO NIGHT", "en": "Before I go to bed, I prepare my clothes for the next day.", "ipa": "/bɪˈfɔːr aɪ ɡoʊ tə bed, aɪ prɪˈper maɪ kloʊðz fər ðə nekst deɪ/", "vi": "Trước khi đi ngủ, tôi chuẩn bị quần áo cho ngày hôm sau."},
+  {"unit": "UNIT 4: FROM NOON TO NIGHT", "en": "I set my alarm for six a.m.", "ipa": "/aɪ set maɪ əˈlɑːrm fər sɪks eɪ ˈem/", "vi": "Tôi đặt báo thức lúc 6 giờ sáng."},
+  {"unit": "UNIT 4: FROM NOON TO NIGHT", "en": "I set two alarms because I'm a heavy sleeper.", "ipa": "/aɪ set tuː əˈlɑːrmz bɪˈkɔːz aɪm ə ˈhevi ˈsliːpər/", "vi": "Tôi đặt hai báo thức vì tôi ngủ rất say."},
+  {"unit": "UNIT 4: FROM NOON TO NIGHT", "en": "I fall asleep as soon as my head hits the pillow.", "ipa": "/aɪ fɔːl əˈsliːp æz suːn æz maɪ hed hɪts ðə ˈpɪloʊ/", "vi": "Tôi ngủ ngay khi vừa đặt đầu xuống gối."}
+];
+
+let deck = [...allCards], index = 0;
+const $ = id => document.getElementById(id);
+
+function normalize(str) {
+  return str
+    .toLowerCase()
+    .replace(/[’‘]/g, "'")
+    .replace(/[.,!?;:"]/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function autoResizeInput() {
+  const el = $('answerInput');
+  el.style.height = 'auto';
+  el.style.height = Math.min(el.scrollHeight, 120) + 'px';
+}
+
+function resetPractice() {
+  const input = $('answerInput');
+  const fb = $('feedback');
+  input.value = '';
+  input.className = '';
+  input.style.height = 'auto';
+  fb.textContent = '';
+  fb.className = 'feedback';
+}
+
+function checkAnswer() {
+  const input = $('answerInput');
+  const fb = $('feedback');
+  const userVal = input.value.trim();
+  const correctVal = deck[index].en;
+
+  if (!userVal) {
+    fb.textContent = '⚠️ Bạn chưa nhập câu trả lời!';
+    fb.className = 'feedback err';
+    input.focus();
+    return;
+  }
+
+  if (normalize(userVal) === normalize(correctVal)) {
+    input.className = 'is-correct';
+    fb.textContent = '✅ Chính xác! Làm tốt lắm.';
+    fb.className = 'feedback ok';
+    $('card').classList.add('flipped');
+  } else {
+    input.className = 'is-wrong';
+    fb.innerHTML = `❌ Chưa đúng. Đáp án chuẩn:<br><strong>${correctVal}</strong>`;
+    fb.className = 'feedback err';
+    $('card').classList.add('flipped');
+  }
+}
+
+function render() {
+  if (!deck.length) return;
+  const c = deck[index];
+  $('vi').textContent = c.vi;
+  $('en').textContent = c.en;
+  $('ipa').textContent = c.ipa;
+  $('card').classList.remove('flipped');
+  $('counter').textContent = (index + 1) + ' / ' + deck.length;
+  $('bar').style.width = ((index + 1) / deck.length * 100) + '%';
+  $('unitLabel').textContent = c.unit.replace('UNIT 3: ', 'Unit 3 – ').replace('UNIT 4: ', 'Unit 4 – ');
+  resetPractice();
+}
+
+function flip() { $('card').classList.toggle('flipped'); }
+function move(n) { index = (index + n + deck.length) % deck.length; render(); }
+
+function filter() {
+  const v = $('unitFilter').value;
+  deck = v === 'all' ? [...allCards] : allCards.filter(c => c.unit === v);
+  index = 0;
+  render();
+}
+
+$('card').addEventListener('click', flip);
+$('flip').addEventListener('click', flip);
+$('prev').addEventListener('click', () => move(-1));
+$('next').addEventListener('click', () => move(1));
+$('unitFilter').addEventListener('change', filter);
+$('checkBtn').addEventListener('click', checkAnswer);
+
+$('answerInput').addEventListener('input', autoResizeInput);
+$('answerInput').addEventListener('keydown', e => {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();
+    checkAnswer();
+  }
+});
+
+$('shuffle').addEventListener('click', () => {
+  for (let i = deck.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [deck[i], deck[j]] = [deck[j], deck[i]];
+  }
+  index = 0;
+  render();
+});
+
+$('reset').addEventListener('click', () => {
+  $('unitFilter').value = 'all';
+  filter();
+});
+
+// Hỗ trợ vuốt cảm ứng (Swipe) trên điện thoại
+let touchStartX = 0, touchStartY = 0;
+const cardWrap = $('cardWrap');
+cardWrap.addEventListener('touchstart', e => {
+  touchStartX = e.changedTouches[0].screenX;
+  touchStartY = e.changedTouches[0].screenY;
+}, { passive: true });
+
+cardWrap.addEventListener('touchend', e => {
+  const dx = e.changedTouches[0].screenX - touchStartX;
+  const dy = e.changedTouches[0].screenY - touchStartY;
+  if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy)) {
+    if (dx < 0) move(1);  // Vuốt trái -> thẻ tiếp theo
+    else move(-1);         // Vuốt phải -> thẻ trước
+  }
+}, { passive: true });
+
+// Phím tắt cho máy tính
+document.addEventListener('keydown', e => {
+  if (document.activeElement === $('answerInput')) return;
+  if (e.key === 'ArrowRight') move(1);
+  else if (e.key === 'ArrowLeft') move(-1);
+  else if (e.code === 'Space' && !['BUTTON', 'SELECT'].includes(document.activeElement.tagName)) {
+    e.preventDefault();
+    flip();
+  }
+});
+
+render();
+</script>
+</body>
+</html>
